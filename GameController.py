@@ -1,29 +1,34 @@
 import pygame
-from Game_modes import HumanVsMiniMax, MiniMaxVsAlphaBeta
-from Service import Service
+import time
+import Utils
+import Exceptions
+from Service import Service, Service1, Service2
 from Board import Board
-from Algorithm import AlgorithmMiniMax, AlgorithmAlphaBeta
+from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
+
 
 class Graphical:
-    def __init__(self, service):
-        self._service = service
+    def __init__(self):
         pygame.init()
-        self._screen = pygame.display.set_mode((45 * self._service.get_length(), 45 * self._service.get_length()))
+        self.length = 15
+        self.b = Board(self.length)
+        self._screen = pygame.display.set_mode((45 * self.length, 45 * self.length))
+        self._service = Service(self.b)
         pygame.display.set_caption("Gomoku")
 
     def draw_board(self):
         board = self._service.get_board()
         for c in range(len(board)):
             for r in range(len(board)):
-                pygame.draw.rect(self._screen, (120, 96, 66), (c * 45, r * 45, 45, 45))
-                pygame.draw.rect(self._screen, (0, 0, 0), (c * 45, r * 45, 45, 45), 1)
+                pygame.draw.rect(self._screen, (227, 185, 100), (c * 45, r * 45, 45, 45))
+                pygame.draw.rect(self._screen, (84, 56, 0), (c * 45, r * 45, 45, 45), 1)
 
         for c in range(len(board)):
             for r in range(len(board)):
                 if board[c][r] == 1:
-                    pygame.draw.circle(self._screen, (59, 47, 31), (c * 45 + 45 // 2, r * 45 + 45 // 2), 45 // 2 - 3)
+                    pygame.draw.circle(self._screen, (255, 255, 255), (c * 45 + 22, r * 45 + 22), 19)
                 elif board[c][r] == -1:
-                    pygame.draw.circle(self._screen, (255, 210, 166), (c * 45 + 45 // 2, r * 45 + 45 // 2), 45 // 2 - 3)
+                    pygame.draw.circle(self._screen, (0, 0, 0), (c * 45 + 22, r * 45 + 22), 19)
 
         pygame.display.update()
 
@@ -45,56 +50,132 @@ class Graphical:
         txt1 = small_font.render("1. Human vs AI (Minimax)", True, (255, 255, 255))
         txt2 = small_font.render("2. AI (Minimax) vs AI (Alpha-Beta)", True, (255, 255, 255))
 
-        self._screen.blit(txt1, (self._screen.get_width() // 2 - 100, 210))
-        self._screen.blit(txt2, (self._screen.get_width() // 2 - 120, 310))
+        self._screen.blit(txt1, (self._screen.get_width() // 2 - 200, 210))
+        self._screen.blit(txt2, (self._screen.get_width() // 2 - 250, 310))
 
         pygame.display.update()
 
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return True
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left click
-                    x, y = event.pos
-                    row, col = x // 45, y // 45
-                    if self._service.get_board()[row][col] == 0:  # If the square is empty
-                        self._service.player_move(row, col)
-                        return False
-        return False
+    def game_loop(self, mode):
 
-    def game_loop(self):
-        running = True
-        while running:
-            self._screen.fill((240, 220, 180))  # Clear screen
+        self._screen.fill((240, 220, 180))
+        self.draw_board()
 
-            self.draw_board()  # Draw the current state of the board
-            running = not self.handle_events()  # Handle events (player move)
-            if self._service.game_over():
-                self.display_winner()
-                running = False
-            pygame.time.wait(100)
-
-    def display_winner(self):
-        font = pygame.font.Font('freesansbold.ttf', 40)
-        winner = "Human Wins!" if self._service.get_turn() == -1 else "Computer Wins!"
-        text = font.render(winner, True, (0, 0, 0))
-        text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2))
-        self._screen.blit(text, text_rect)
         pygame.display.update()
-        pygame.time.wait(2000)
+
+        if mode == "human_vs_ai":
+            alg = AlgorithmMinimax(3)
+            self._service = Service1(self.b, alg)
+            game_over = False
+
+            while not game_over:
+                self.draw_board()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        return
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if self._service.get_turn() == 1:
+                            try:
+                                x = event.pos[0] // 45
+                                y = event.pos[1] // 45
+                                self._service.player_move(x, y)
+                                if Utils.game_over(self._service.get_board(), 1):
+                                    game_over = True
+                            except Exceptions:
+                                continue
+                self.draw_board()
+                if not game_over and self._service.get_turn() == -1:
+                    self._service.computer_move()
+                    if Utils.game_over(self._service.get_board(), -1):
+                        game_over = True
+
+            self.draw_board()
+            font = pygame.font.Font('freesansbold.ttf', 70)
+
+            if self._service.get_turn() == -1:
+                text = font.render('You Won!', True, (0, 0, 143))
+                text_rect = text.get_rect()
+                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
+                self._screen.blit(text, text_rect)
+            elif self._service.get_turn() == 1:
+                text = font.render('You Lost!', True, (0, 0, 150))
+                text_rect = text.get_rect()
+                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
+                self._screen.blit(text, text_rect)
+
+            pygame.display.update()
+
+            r = True
+            while r:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        r = False
+            pygame.quit()
+        else:
+            alg1 = AlgorithmAlphaBeta(5)
+            alg2 = AlgorithmMinimax(3)
+            self._service = Service2(self.b, alg1, alg2)
+
+            while True:
+                self.draw_board()
+                self._service.computer_move1()
+                time.sleep(0.5)
+                pygame.display.update()
+
+                if Utils.game_over(self._service.get_board(), -1):
+                    break
+
+                self.draw_board()
+                self._service.computer_move2()
+                time.sleep(0.5)
+                pygame.display.update()
+
+            self.draw_board()
+            font = pygame.font.Font('freesansbold.ttf', 70)
+
+            if self._service.get_turn() == -1:
+                text = font.render('Algorithm 1 Wins!', True, (0, 0, 143))
+                text_rect = text.get_rect()
+                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
+                self._screen.blit(text, text_rect)
+            elif self._service.get_turn() == 1:
+                text = font.render('Algorithm 2 Wins!', True, (0, 0, 150))
+                text_rect = text.get_rect()
+                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
+                self._screen.blit(text, text_rect)
+
+            pygame.display.update()
+
+            r = True
+            while r:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        r = False
+            pygame.quit()
+
 
 class GameController:
     def __init__(self):
-        self.board = Board(15)  # Create a 15x15 board
-        self.algorithm = AlgorithmMiniMax(depth=3)  # Use MiniMax with depth 3
-        self.service = Service(self.board, self.algorithm)
-        self.graphical = Graphical(self.service)
+        self.mode = None
+        self.graphical = Graphical()
 
     def run(self):
         self.graphical.main_menu()
-        self.graphical.game_loop()
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if 200 <= y <= 260:
+                        self.mode = "human_vs_ai"
+                        waiting = False
+                    elif 300 <= y <= 360:
+                        self.mode = "ai_vs_ai"
+                        waiting = False
+
+        self.graphical.game_loop(self.mode)
 
 
 if __name__ == "__main__":

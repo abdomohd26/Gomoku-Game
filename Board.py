@@ -1,6 +1,7 @@
 from Exceptions import InvalidMove
 from copy import deepcopy
 
+
 class Board:
     """
     0   -> empty square
