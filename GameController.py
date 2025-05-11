@@ -120,7 +120,7 @@ class Graphical:
                                 self._service.player_move(x, y)
                                 if Utils.game_over(self._service.get_board(), 1):
                                     game_over = True
-                            except Exceptions:
+                            except Exceptions.InvalidMove:
                                 continue
                 self.draw_board()
                 if not game_over and self._service.get_turn() == -1:
