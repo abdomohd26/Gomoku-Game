@@ -10,54 +10,91 @@ from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
 class Graphical:
     def __init__(self):
         pygame.init()
-        self.length = 6
+        self.length = 7
         self.b = Board(self.length)
-        self._screen = pygame.display.set_mode((45 * self.length, 45 * self.length))
+        self._screen = pygame.display.set_mode((800,800))
         self._service = Service(self.b)
         pygame.display.set_caption("Gomoku")
 
     def draw_board(self):
         board = self._service.get_board()
-        for c in range(len(board)):
-            for r in range(len(board)):
-                pygame.draw.rect(self._screen, (227, 185, 100), (c * 45, r * 45, 45, 45))
-                pygame.draw.rect(self._screen, (84, 56, 0), (c * 45, r * 45, 45, 45), 1)
+        board_size = len(board)
+        cell_size = 800 // board_size
 
-        for c in range(len(board)):
-            for r in range(len(board)):
+        for c in range(board_size):
+            for r in range(board_size):
+                rect = pygame.Rect(c * cell_size, r * cell_size, cell_size, cell_size)
+                pygame.draw.rect(self._screen, (146, 184, 224), rect, border_radius=7)
+                pygame.draw.rect(self._screen, (237, 237, 237), rect, width=1, border_radius=7)
+
+        for c in range(board_size):
+            for r in range(board_size):
+                center = (c * cell_size + cell_size // 2, r * cell_size + cell_size // 2)
+                radius = cell_size // 2 - 3
+
                 if board[c][r] == 1:
-                    pygame.draw.circle(self._screen, (255, 255, 255), (c * 45 + 22, r * 45 + 22), 19)
+                    pygame.draw.circle(self._screen, (80, 160, 255), center, radius)
+                    pygame.draw.circle(self._screen, (200, 230, 255),
+                                       (center[0] - radius // 3, center[1] - radius // 3), radius // 4)
+                    pygame.draw.circle(self._screen, (30, 90, 180), center, radius, 2)
+
                 elif board[c][r] == -1:
-                    pygame.draw.circle(self._screen, (0, 0, 0), (c * 45 + 22, r * 45 + 22), 19)
+                    pygame.draw.circle(self._screen, (30, 60, 120), center, radius)
+                    pygame.draw.circle(self._screen, (180, 200, 230),
+                                       (center[0] - radius // 3, center[1] - radius // 3), radius // 4)
+                    pygame.draw.circle(self._screen, (10, 25, 70), center, radius, 2)
 
         pygame.display.update()
 
     def main_menu(self):
-        self._screen.fill((240, 220, 180))
-        font = pygame.font.Font('freesansbold.ttf', 40)
-        small_font = pygame.font.Font('freesansbold.ttf', 30)
+        background = pygame.image.load("background.png")
+        background = pygame.transform.scale(background, (800,800))
+        self._screen.blit(background, (0, 0))
 
-        title = font.render("Welcome to Gomoku", True, (0, 0, 0))
-        title_rect = title.get_rect(center=(self._screen.get_width() // 2, 100))
-        self._screen.blit(title, title_rect)
+        font = pygame.font.Font('Jersey10-Regular.ttf', 70)
+        small_font = pygame.font.Font('Jersey10-Regular.ttf', 45)
 
-        button1 = pygame.Rect(self._screen.get_width() // 2 - 200, 200, 400, 60)
-        button2 = pygame.Rect(self._screen.get_width() // 2 - 250, 300, 500, 60)
+        # title = font.render("Welcome to Gomoku", True, (0, 0, 0))
+        # title_rect = title.get_rect(center=(self._screen.get_width() // 2, 100))
+        # self._screen.blit(title, title_rect)
 
-        pygame.draw.rect(self._screen, (100, 100, 200), button1)
-        pygame.draw.rect(self._screen, (100, 200, 100), button2)
+        button_width = 400
+        button_height = 60
+        button1 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 320, button_width, button_height)
+        button2 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 400, button_width, button_height)
 
-        txt1 = small_font.render("1. Human vs AI (Minimax)", True, (255, 255, 255))
-        txt2 = small_font.render("2. AI (Minimax) vs AI (Alpha-Beta)", True, (255, 255, 255))
 
-        self._screen.blit(txt1, (self._screen.get_width() // 2 - 200, 210))
-        self._screen.blit(txt2, (self._screen.get_width() // 2 - 250, 310))
+        button_color = (30, 90, 150)
+        shadow_color = (0, 22, 64)
+        # border_color = (30, 90, 150)
+
+
+        shadow_offset = 4
+        pygame.draw.rect(self._screen, shadow_color, button1.move(shadow_offset, shadow_offset), border_radius=12)
+        pygame.draw.rect(self._screen, shadow_color, button2.move(shadow_offset, shadow_offset), border_radius=12)
+
+
+        pygame.draw.rect(self._screen, button_color, button1, border_radius=12)
+        pygame.draw.rect(self._screen, button_color, button2, border_radius=12)
+
+        # pygame.draw.rect(self._screen, border_color, button1, 2, border_radius=12)
+        # pygame.draw.rect(self._screen, border_color, button2, 2, border_radius=12)
+
+
+        txt1 = small_font.render("Human  VS  Minimax", True, (255, 255, 255))
+        txt2 = small_font.render("Minimax VS Alpha-Beta", True, (255, 255, 255))
+
+        txt1_rect = txt1.get_rect(center=button1.center)
+        txt2_rect = txt2.get_rect(center=button2.center)
+
+        self._screen.blit(txt1, txt1_rect)
+        self._screen.blit(txt2, txt2_rect)
 
         pygame.display.update()
 
     def game_loop(self, mode):
 
-        self._screen.fill((240, 220, 180))
+        self._screen.fill((230, 230, 230))
         self.draw_board()
 
         pygame.display.update()
@@ -75,8 +112,10 @@ class Graphical:
                     elif event.type == pygame.MOUSEBUTTONDOWN:
                         if self._service.get_turn() == 1:
                             try:
-                                x = event.pos[0] // 45
-                                y = event.pos[1] // 45
+                                cell_size = self._screen.get_width() // self.length
+                                x = event.pos[0] // cell_size
+                                y = event.pos[1] // cell_size
+
                                 self._service.player_move(x, y)
                                 if Utils.game_over(self._service.get_board(), 1):
                                     game_over = True
@@ -93,21 +132,18 @@ class Graphical:
 
             if self._service.get_turn() == -1:
                 text = font.render('You Won!', True, (255, 255, 255))
-                text_rect = text.get_rect()
-                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
-                pygame.draw.rect(self._screen, (0, 128, 0), text_rect.inflate(20, 10))
-
-                self._screen.blit(text, text_rect)
-
+                bg_color = (0, 128, 0)
             elif self._service.get_turn() == 1:
                 text = font.render('You Lost!', True, (255, 255, 255))
-                text_rect = text.get_rect()
-                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
-                pygame.draw.rect(self._screen, (128, 0, 0), text_rect.inflate(20, 10))
+                bg_color = (128, 0, 0)
+            else:
+                return
 
-                self._screen.blit(text, text_rect)
-                
+            text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2))
+            background_rect = text_rect.inflate(40, 20)
 
+            pygame.draw.rect(self._screen, bg_color, background_rect, border_radius=10)
+            self._screen.blit(text, text_rect)
             pygame.display.update()
 
             r = True
@@ -139,24 +175,19 @@ class Graphical:
                     break
 
             self.draw_board()
-            font = pygame.font.Font('freesansbold.ttf', 50)
+            font = pygame.font.Font('Jersey10-Regular.ttf', 50)
 
             if self._service.get_turn() == -1:
-                text = font.render('Minimax Algorithm Won!', True, (255, 255, 255))
-                text_rect = text.get_rect()
-                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
-                pygame.draw.rect(self._screen, (54, 116, 181), text_rect.inflate(20, 10))
+                message = 'Minimax Algorithm Won!'
+            else:
+                message = 'Alpha Beta Algorithm Won!'
 
-                self._screen.blit(text, text_rect)
+            text = font.render(message, True, (255, 255, 255))
+            text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2))
+            bg_rect = text_rect.inflate(40, 20)
 
-            elif self._service.get_turn() == 1:
-                text = font.render('Alpa Beta Algorithm Won!', True, (255, 255, 255))
-                text_rect = text.get_rect()
-                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
-                pygame.draw.rect(self._screen, (54, 116, 181), text_rect.inflate(20, 10))
-
-                self._screen.blit(text, text_rect)
-
+            pygame.draw.rect(self._screen, (54, 116, 181), bg_rect, border_radius=10)
+            self._screen.blit(text, text_rect)
             pygame.display.update()
 
             r = True
@@ -182,10 +213,10 @@ class GameController:
                     return
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
-                    if 200 <= y <= 260:
+                    if 320 <= y <= 380:
                         self.mode = "human_vs_ai"
                         waiting = False
-                    elif 300 <= y <= 360:
+                    elif 390 <= y <= 450:
                         self.mode = "ai_vs_ai"
                         waiting = False
 
