@@ -10,6 +10,10 @@ class BasicAlgo:
         """
         @param board: the board
         @return: a list of all points that are in neighborhood with any point + the center point
+        explian func:
+        it adds any empty cell to the list if one of its 8 neighbours aren't an e,pty cell 
+        and adds middle cell if empty
+        this helps algos work faster
         """
         locations = []
         for i in range(len(board)):
@@ -43,7 +47,7 @@ class BasicAlgo:
         if board[len(board) // 2][len(board) // 2] == 0:
             locations.append((len(board) // 2, len(board) // 2))
 
-        return list(set(locations))
+        return list(set(locations)) # remove duplicates
 
     def score_board(self, board, piece):
         """
@@ -143,7 +147,7 @@ class AlgorithmAlphaBeta(BasicAlgo):
 
     def mini_max(self, board_obj, depth, alpha, beta, maximizing_player):
         """
-            function alphabeta(node, depth, α, β, maximizingPlayer) is
+            function alphabeta(node, depth, α, β, maximizingPlayer) 
                 if depth = 0 or node is a terminal node then
                     return the heuristic value of node
                 if maximizingPlayer then

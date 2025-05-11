@@ -10,7 +10,7 @@ from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
 class Graphical:
     def __init__(self):
         pygame.init()
-        self.length = 15
+        self.length = 5
         self.board = Board(self.length)
         self._screen = pygame.display.set_mode((45 * self.length, 45 * self.length))
         self._service = Service(self.board)
@@ -86,6 +86,7 @@ class Graphical:
             alg = AlgorithmMinimax(1)
             self._service = Service1(self.board, alg)
             game_over = False
+            draw = False
 
             while not game_over:
                 self.draw_board()
@@ -100,34 +101,39 @@ class Graphical:
                                 self._service.player_move(x, y)
                                 if Utils.game_over(self._service.get_board(), 1):
                                     game_over = True
+                                elif not any(0 in row for row in self._service.get_board()):
+                                    draw = True
+                                    game_over = True
                             except Exceptions:
                                 continue
+
                 self.draw_board()
+
                 if not game_over and self._service.get_turn() == -1:
                     self._service.computer_move()
                     if Utils.game_over(self._service.get_board(), -1):
+                        game_over = True
+                    elif not any(0 in row for row in self._service.get_board()):
+                        draw = True
                         game_over = True
 
             self.draw_board()
             font = pygame.font.Font('freesansbold.ttf', 70)
 
-            if self._service.get_turn() == -1:
+            if draw:
+                text = font.render('Draw!', True, (255, 255, 255))
+                color = (128, 128, 128)
+            elif self._service.get_turn() == -1:
                 text = font.render('You Won!', True, (255, 255, 255))
-                text_rect = text.get_rect()
-                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
-                pygame.draw.rect(self._screen, (0, 128, 0), text_rect.inflate(20, 10))
-
-                self._screen.blit(text, text_rect)
-
+                color = (0, 128, 0)
             elif self._service.get_turn() == 1:
                 text = font.render('You Lost!', True, (255, 255, 255))
-                text_rect = text.get_rect()
-                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
-                pygame.draw.rect(self._screen, (128, 0, 0), text_rect.inflate(20, 10))
+                color = (128, 0, 0)
 
-                self._screen.blit(text, text_rect)
-                
-
+            text_rect = text.get_rect()
+            text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
+            pygame.draw.rect(self._screen, color, text_rect.inflate(20, 10))
+            self._screen.blit(text, text_rect)
             pygame.display.update()
 
             r = True
