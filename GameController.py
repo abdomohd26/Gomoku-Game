@@ -5,12 +5,13 @@ import Exceptions
 from Service import Service, Service1, Service2
 from Board import Board
 from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
+pygame.mixer.init()
 
 
 class Graphical:
     def __init__(self):
         pygame.init()
-        self.length = 15
+        self.length = 6
         self.b = Board(self.length)
         self._screen = pygame.display.set_mode((800,800))
         self._service = Service(self.b)
@@ -100,7 +101,7 @@ class Graphical:
         pygame.display.update()
 
         if mode == "human_vs_ai":
-            alg = AlgorithmMinimax(1)
+            alg = AlgorithmMinimax(3)
             self._service = Service1(self.b, alg)
             game_over = False
 
@@ -133,9 +134,15 @@ class Graphical:
             if self._service.get_turn() == -1:
                 message = 'You Won!'
                 bg_color = (54, 116, 181)
+                win_sound = pygame.mixer.Sound('win.wav')
+                win_sound.play()
+
             elif self._service.get_turn() == 1:
-                message = 'You Lost!'
+                message = 'lose Win!'
                 bg_color = (54, 116, 181)
+                lose_sound = pygame.mixer.Sound('lose.wav')
+                lose_sound.play()
+
             else:
                 return
 
