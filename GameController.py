@@ -106,7 +106,6 @@ class Graphical:
                 pygame.draw.rect(self._screen, (128, 0, 0), text_rect.inflate(20, 10))
 
                 self._screen.blit(text, text_rect)
-                
 
             pygame.display.update()
 
