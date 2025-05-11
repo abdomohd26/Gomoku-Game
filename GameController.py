@@ -10,7 +10,7 @@ from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
 class Graphical:
     def __init__(self):
         pygame.init()
-        self.length = 7
+        self.length = 15
         self.b = Board(self.length)
         self._screen = pygame.display.set_mode((800,800))
         self._service = Service(self.b)
@@ -128,21 +128,22 @@ class Graphical:
                         game_over = True
 
             self.draw_board()
-            font = pygame.font.Font('freesansbold.ttf', 70)
+            font = pygame.font.Font('Jersey10-Regular.ttf', 60)
 
             if self._service.get_turn() == -1:
-                text = font.render('You Won!', True, (255, 255, 255))
-                bg_color = (0, 128, 0)
+                message = 'You Won!'
+                bg_color = (54, 116, 181)
             elif self._service.get_turn() == 1:
-                text = font.render('You Lost!', True, (255, 255, 255))
-                bg_color = (128, 0, 0)
+                message = 'You Lost!'
+                bg_color = (54, 116, 181)
             else:
                 return
 
+            text = font.render(message, True, (255, 255, 255))
             text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2))
-            background_rect = text_rect.inflate(40, 20)
+            bg_rect = text_rect.inflate(40, 20)
 
-            pygame.draw.rect(self._screen, bg_color, background_rect, border_radius=10)
+            pygame.draw.rect(self._screen, bg_color, bg_rect, border_radius=10)
             self._screen.blit(text, text_rect)
             pygame.display.update()
 
