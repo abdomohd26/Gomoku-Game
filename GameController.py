@@ -128,13 +128,12 @@ class Graphical:
                 color = (0, 128, 0)
             elif self._service.get_turn() == 1:
                 text = font.render('You Lost!', True, (255, 255, 255))
-                text_rect = text.get_rect()
-                text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
-                pygame.draw.rect(self._screen, (128, 0, 0), text_rect.inflate(20, 10))
+                color = (128, 0, 0)
 
-                self._screen.blit(text, text_rect)
-                
-
+            text_rect = text.get_rect()
+            text_rect.center = (45 * self.length // 2, 45 * self.length // 2)
+            pygame.draw.rect(self._screen, color, text_rect.inflate(20, 10))
+            self._screen.blit(text, text_rect)
             pygame.display.update()
 
             r = True
