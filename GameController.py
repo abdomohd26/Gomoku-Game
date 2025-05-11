@@ -10,10 +10,10 @@ from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
 class Graphical:
     def __init__(self):
         pygame.init()
-        self.length = 6
-        self.b = Board(self.length)
+        self.length = 15
+        self.board = Board(self.length)
         self._screen = pygame.display.set_mode((45 * self.length, 45 * self.length))
-        self._service = Service(self.b)
+        self._service = Service(self.board)
         pygame.display.set_caption("Gomoku")
 
     def draw_board(self):
@@ -34,26 +34,46 @@ class Graphical:
 
     def main_menu(self):
         self._screen.fill((240, 220, 180))
-        font = pygame.font.Font('freesansbold.ttf', 40)
-        small_font = pygame.font.Font('freesansbold.ttf', 30)
+        width, height = self._screen.get_size()
 
+        # Scale font sizes
+        title_font_size = height // 10
+        button_font_size = height // 20
+
+        font = pygame.font.Font('freesansbold.ttf', title_font_size)
+        button_font = pygame.font.Font('freesansbold.ttf', button_font_size)
+
+        # Title
         title = font.render("Welcome to Gomoku", True, (0, 0, 0))
-        title_rect = title.get_rect(center=(self._screen.get_width() // 2, 100))
+        title_rect = title.get_rect(center=(width // 2, height // 6))
         self._screen.blit(title, title_rect)
 
-        button1 = pygame.Rect(self._screen.get_width() // 2 - 200, 200, 400, 60)
-        button2 = pygame.Rect(self._screen.get_width() // 2 - 250, 300, 500, 60)
+        # Button texts
+        txt1 = button_font.render("1. Human vs AI (Minimax)", True, (255, 255, 255))
+        txt2 = button_font.render("2. AI (Minimax) vs AI (Alpha-Beta)", True, (255, 255, 255))
 
-        pygame.draw.rect(self._screen, (100, 100, 200), button1)
-        pygame.draw.rect(self._screen, (100, 200, 100), button2)
+        # Get text rects and center them
+        txt1_rect = txt1.get_rect(center=(width // 2, height // 2))
+        txt2_rect = txt2.get_rect(center=(width // 2, height // 2 + txt1_rect.height + height // 20))
 
-        txt1 = small_font.render("1. Human vs AI (Minimax)", True, (255, 255, 255))
-        txt2 = small_font.render("2. AI (Minimax) vs AI (Alpha-Beta)", True, (255, 255, 255))
+        # Inflate for padding (10px horizontal, 5px vertical)
+        button1_rect = txt1_rect.inflate(20, 10)
+        button2_rect = txt2_rect.inflate(20, 10)
 
-        self._screen.blit(txt1, (self._screen.get_width() // 2 - 200, 210))
-        self._screen.blit(txt2, (self._screen.get_width() // 2 - 250, 310))
+        # Draw rectangles behind text
+        pygame.draw.rect(self._screen, (100, 100, 200), button1_rect)
+        pygame.draw.rect(self._screen, (100, 200, 100), button2_rect)
+
+        # Blit text
+        self._screen.blit(txt1, txt1_rect)
+        self._screen.blit(txt2, txt2_rect)
 
         pygame.display.update()
+
+        # Store the button rectangles if you want to use them for click detection
+        self._button1_rect = button1_rect
+        self._button2_rect = button2_rect
+
 
     def game_loop(self, mode):
 
@@ -64,7 +84,7 @@ class Graphical:
 
         if mode == "human_vs_ai":
             alg = AlgorithmMinimax(1)
-            self._service = Service1(self.b, alg)
+            self._service = Service1(self.board, alg)
             game_over = False
 
             while not game_over:
@@ -119,7 +139,7 @@ class Graphical:
         else:
             alg1 = AlgorithmMinimax(3)
             alg2 = AlgorithmAlphaBeta(3)
-            self._service = Service2(self.b, alg1, alg2)
+            self._service = Service2(self.board, alg1, alg2)
 
             while True:
                 self.draw_board()
@@ -182,10 +202,10 @@ class GameController:
                     return
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
-                    if 200 <= y <= 260:
+                    if self.graphical._button1_rect.collidepoint(x, y):
                         self.mode = "human_vs_ai"
                         waiting = False
-                    elif 300 <= y <= 360:
+                    elif self.graphical._button2_rect.collidepoint(x, y):
                         self.mode = "ai_vs_ai"
                         waiting = False
 
