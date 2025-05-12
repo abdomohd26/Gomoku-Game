@@ -204,11 +204,13 @@ class Graphical:
 
             font = pygame.font.Font('Jersey10-Regular.ttf', 60)
             if draw:
-                green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
-                green_overlay.fill((0, 255, 0, 128))
-                self._screen.blit(green_overlay, (0, 0))
+                grey_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
+                grey_overlay.fill((100, 100, 100, 128))
+                self._screen.blit(grey_overlay, (0, 0))
                 message = 'Draw!'
-                bg_color = (162, 185, 167)
+                bg_color = (54, 116, 181)
+                # lose_sound = pygame.mixer.Sound('lose1.wav')
+                # lose_sound.play()
                 draw_sound = pygame.mixer.Sound('draw.wav')
                 draw_sound.play()
 
