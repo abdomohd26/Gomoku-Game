@@ -209,8 +209,8 @@ class Graphical:
                 self._screen.blit(green_overlay, (0, 0))
                 message = 'Draw!'
                 bg_color = (162, 185, 167)
-                # draw_sound = pygame.mixer.Sound('draw.wav')
-                # draw_sound.play()
+                draw_sound = pygame.mixer.Sound('draw.wav')
+                draw_sound.play()
 
             elif self._service.get_turn() == -1:
                 green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
