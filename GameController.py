@@ -10,11 +10,11 @@ from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
 class Graphical:
     def __init__(self):
         pygame.init()
-        self.length = 10
+        self.length = 5
         self.b = Board(self.length)
         self._screen = pygame.display.set_mode((800,800))
         self._service = Service(self.b)
-        self.selected_depth = 3
+        self.selected_depth = 1
         pygame.display.set_caption("Gomoku")
 
     def draw_board(self):
@@ -143,7 +143,7 @@ class Graphical:
             alg = AlgorithmMinimax(self.selected_depth)
             self._service = Service1(self.b, alg)
             game_over = False
-
+            draw = False
             while not game_over:
                 self.draw_board()
                 for event in pygame.event.get():
@@ -160,6 +160,9 @@ class Graphical:
                                 click = pygame.mixer.Sound('click.wav')
                                 click.play()
                                 if Utils.game_over(self._service.get_board(), 1):
+                                    game_over = True
+                                elif not any(0 in row for row in self._service.get_board()):
+                                    draw = True
                                     game_over = True
                             except Exceptions.InvalidMove:
                                 wrong = pygame.mixer.Sound('wrong.wav')
@@ -192,12 +195,24 @@ class Graphical:
                     click.play()
                     if Utils.game_over(self._service.get_board(), -1):
                         game_over = True
+                    elif not any(0 in row for row in self._service.get_board()):
+                        draw = True
+                        game_over = True
 
             self.draw_board()
 
 
             font = pygame.font.Font('Jersey10-Regular.ttf', 60)
-            if self._service.get_turn() == -1:
+            if draw:
+                green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
+                green_overlay.fill((0, 255, 0, 128))
+                self._screen.blit(green_overlay, (0, 0))
+                message = 'Draw!'
+                bg_color = (162, 185, 167)
+                # draw_sound = pygame.mixer.Sound('draw.wav')
+                # draw_sound.play()
+
+            elif self._service.get_turn() == -1:
                 green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
                 green_overlay.fill((0, 255, 0, 128))
                 self._screen.blit(green_overlay, (0, 0))
