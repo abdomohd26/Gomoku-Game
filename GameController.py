@@ -11,10 +11,11 @@ pygame.mixer.init()
 class Graphical:
     def __init__(self):
         pygame.init()
-        self.length = 6
+        self.length = 10
         self.b = Board(self.length)
         self._screen = pygame.display.set_mode((800,800))
         self._service = Service(self.b)
+        self.selected_depth = 3
         pygame.display.set_caption("Gomoku")
 
     def draw_board(self):
@@ -47,51 +48,90 @@ class Graphical:
 
         pygame.display.update()
 
+
     def main_menu(self):
         background = pygame.image.load("background.png")
-        background = pygame.transform.scale(background, (800,800))
+        background = pygame.transform.scale(background, (800, 800))
         self._screen.blit(background, (0, 0))
 
         font = pygame.font.Font('Jersey10-Regular.ttf', 70)
         small_font = pygame.font.Font('Jersey10-Regular.ttf', 45)
-
-        # title = font.render("Welcome to Gomoku", True, (0, 0, 0))
-        # title_rect = title.get_rect(center=(self._screen.get_width() // 2, 100))
-        # self._screen.blit(title, title_rect)
+        input_font = pygame.font.Font('Jersey10-Regular.ttf', 40)
 
         button_width = 400
         button_height = 60
         button1 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 320, button_width, button_height)
         button2 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 400, button_width, button_height)
 
+        input_font = pygame.font.Font('Jersey10-Regular.ttf', 40)
+        input_box = pygame.Rect(self._screen.get_width() // 2 + 40, 250, 45, 45)  # Reduced width
+        input_color = (200, 200, 200)
+        user_text = str(self.selected_depth)
+        input_active = False
+
 
         button_color = (30, 90, 150)
         shadow_color = (0, 22, 64)
-        # border_color = (30, 90, 150)
+        input_color_inactive = (200, 200, 200)
+        input_color_active = (255, 255, 255)
+        input_color = input_color_inactive
+
+        running = True
+        while running:
+            self._screen.blit(background, (0, 0))
+
+            # Draw input box
+            input_label = input_font.render("AI Depth:", True, (0, 0, 0))
+            self._screen.blit(input_label, (input_box.x - 150, input_box.y + 7))
 
 
-        shadow_offset = 4
-        pygame.draw.rect(self._screen, shadow_color, button1.move(shadow_offset, shadow_offset), border_radius=12)
-        pygame.draw.rect(self._screen, shadow_color, button2.move(shadow_offset, shadow_offset), border_radius=12)
+            pygame.draw.rect(self._screen, input_color, input_box, border_radius=10)
+            text_surface = input_font.render(user_text, True, (0, 0, 0))
+            self._screen.blit(text_surface, (input_box.x + 10, input_box.y + 10))
 
+            # Draw buttons
+            pygame.draw.rect(self._screen, shadow_color, button1.move(4, 4), border_radius=12)
+            pygame.draw.rect(self._screen, shadow_color, button2.move(4, 4), border_radius=12)
+            pygame.draw.rect(self._screen, button_color, button1, border_radius=12)
+            pygame.draw.rect(self._screen, button_color, button2, border_radius=12)
 
-        pygame.draw.rect(self._screen, button_color, button1, border_radius=12)
-        pygame.draw.rect(self._screen, button_color, button2, border_radius=12)
+            txt1 = small_font.render("Human  VS  Minimax", True, (255, 255, 255))
+            txt2 = small_font.render("Minimax VS Alpha-Beta", True, (255, 255, 255))
 
-        # pygame.draw.rect(self._screen, border_color, button1, 2, border_radius=12)
-        # pygame.draw.rect(self._screen, border_color, button2, 2, border_radius=12)
+            self._screen.blit(txt1, txt1.get_rect(center=button1.center))
+            self._screen.blit(txt2, txt2.get_rect(center=button2.center))
 
+            pygame.display.flip()
 
-        txt1 = small_font.render("Human  VS  Minimax", True, (255, 255, 255))
-        txt2 = small_font.render("Minimax VS Alpha-Beta", True, (255, 255, 255))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return
 
-        txt1_rect = txt1.get_rect(center=button1.center)
-        txt2_rect = txt2.get_rect(center=button2.center)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if input_box.collidepoint(event.pos):
+                        input_active = not input_active
+                    else:
+                        input_active = False
+                    input_color = input_color_active if input_active else input_color_inactive
 
-        self._screen.blit(txt1, txt1_rect)
-        self._screen.blit(txt2, txt2_rect)
+                    if button1.collidepoint(event.pos) or button2.collidepoint(event.pos):
+                        try:
+                            self.selected_depth = int(user_text)
+                            print(f"Selected Depth: {self.selected_depth}")
+                        except ValueError:
+                            self.selected_depth = 3  # Default fallback
+                            print("Invalid input, using default depth = 3")
+                        running = False  # Exit menu and start game
 
-        pygame.display.update()
+                elif event.type == pygame.KEYDOWN and input_active:
+                    if event.key == pygame.K_BACKSPACE:
+                        user_text = user_text[:-1]
+                    elif event.key == pygame.K_RETURN:
+                        input_active = False
+                    elif event.unicode.isdigit() and len(user_text) < 2:  # limit to 2-digit numbers
+                        user_text += event.unicode
+
 
     def game_loop(self, mode):
 
@@ -101,7 +141,7 @@ class Graphical:
         pygame.display.update()
 
         if mode == "human_vs_ai":
-            alg = AlgorithmMinimax(3)
+            alg = AlgorithmMinimax(self.selected_depth)
             self._service = Service1(self.b, alg)
             game_over = False
 
@@ -161,8 +201,8 @@ class Graphical:
                         r = False
             pygame.quit()
         else:
-            alg1 = AlgorithmMinimax(3)
-            alg2 = AlgorithmAlphaBeta(3)
+            alg1 = AlgorithmMinimax(self.selected_depth)
+            alg2 = AlgorithmAlphaBeta(self.selected_depth)
             self._service = Service2(self.b, alg1, alg2)
 
             while True:
