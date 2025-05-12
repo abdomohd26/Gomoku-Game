@@ -209,8 +209,6 @@ class Graphical:
                 self._screen.blit(grey_overlay, (0, 0))
                 message = 'Draw!'
                 bg_color = (54, 116, 181)
-                # lose_sound = pygame.mixer.Sound('lose1.wav')
-                # lose_sound.play()
                 draw_sound = pygame.mixer.Sound('draw.wav')
                 draw_sound.play()
 
