@@ -11,9 +11,7 @@ class Graphical:
     def __init__(self):
         pygame.init()
         self.length = 5
-        self.b = Board(self.length)
         self._screen = pygame.display.set_mode((800,800))
-        self._service = Service(self.b)
         self.selected_depth = 1
         pygame.display.set_caption("Gomoku")
 
@@ -59,34 +57,46 @@ class Graphical:
 
         button_width = 400
         button_height = 60
-        button1 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 320, button_width, button_height)
-        button2 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 400, button_width, button_height)
+        button1 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 360, button_width, button_height)
+        button2 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 440, button_width, button_height)
 
-        input_font = pygame.font.Font('Jersey10-Regular.ttf', 40)
-        input_box = pygame.Rect(self._screen.get_width() // 2 + 40, 250, 45, 45)  # Reduced width
-        input_color = (200, 200, 200)
-        user_text = str(self.selected_depth)
+        input_box = pygame.Rect(self._screen.get_width() // 2 + 40, 250, 45, 45)
+        input_box2 = pygame.Rect(self._screen.get_width() // 2 + 40, 310, 45, 45)
+        
+        input_color_inactive = (200, 200, 200)
+        input_color_active = (255, 255, 255)
+        
         input_active = False
+        input_active2 = False
+        
+        input_color = input_color_inactive
+        input_color2 = input_color_inactive
 
+        user_text = str(self.selected_depth)
+        user_text2 = str(self.length)
 
         button_color = (30, 90, 150)
         shadow_color = (0, 22, 64)
-        input_color_inactive = (200, 200, 200)
-        input_color_active = (255, 255, 255)
-        input_color = input_color_inactive
 
         running = True
         while running:
             self._screen.blit(background, (0, 0))
 
-            # Draw input box
+            # Draw input labels
             input_label = input_font.render("AI Depth:", True, (0, 0, 0))
             self._screen.blit(input_label, (input_box.x - 150, input_box.y + 7))
 
+            input_label2 = input_font.render("Length:", True, (0, 0, 0))
+            self._screen.blit(input_label2, (input_box2.x - 150, input_box2.y + 7))
 
+            # Draw input boxes
             pygame.draw.rect(self._screen, input_color, input_box, border_radius=10)
             text_surface = input_font.render(user_text, True, (0, 0, 0))
             self._screen.blit(text_surface, (input_box.x + 10, input_box.y + 10))
+
+            pygame.draw.rect(self._screen, input_color2, input_box2, border_radius=10)
+            text_surface2 = input_font.render(user_text2, True, (0, 0, 0))
+            self._screen.blit(text_surface2, (input_box2.x + 10, input_box2.y + 10))
 
             # Draw buttons
             pygame.draw.rect(self._screen, shadow_color, button1.move(4, 4), border_radius=12)
@@ -108,32 +118,66 @@ class Graphical:
                     return
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # Activate input boxes
                     if input_box.collidepoint(event.pos):
-                        input_active = not input_active
+                        input_active = True
+                        input_active2 = False
+                    elif input_box2.collidepoint(event.pos):
+                        input_active2 = True
+                        input_active = False
                     else:
                         input_active = False
-                    input_color = input_color_active if input_active else input_color_inactive
+                        input_active2 = False
 
-                    if button1.collidepoint(event.pos) or button2.collidepoint(event.pos):
+                    input_color = input_color_active if input_active else input_color_inactive
+                    input_color2 = input_color_active if input_active2 else input_color_inactive
+
+                    if button1.collidepoint(event.pos):
+                        self.mode = "human_vs_ai"
                         try:
                             self.selected_depth = int(user_text)
-                            print(f"Selected Depth: {self.selected_depth}")
+                            self.length = int(user_text2)
+                            print(f"Selected Depth: {self.selected_depth}, Length: {self.length}")
                         except ValueError:
-                            self.selected_depth = 3  # Default fallback
-                            print("Invalid input, using default depth = 3")
-                        running = False  # Exit menu and start game
+                            self.selected_depth = 3
+                            self.length = 5
+                            print("Invalid input. Using default depth=3 and length=5")
+                        running = False
 
-                elif event.type == pygame.KEYDOWN and input_active:
-                    if event.key == pygame.K_BACKSPACE:
-                        user_text = user_text[:-1]
-                    elif event.key == pygame.K_RETURN:
-                        input_active = False
-                    elif event.unicode.isdigit() and len(user_text) < 2:  # limit to 2-digit numbers
-                        user_text += event.unicode
+                    elif button2.collidepoint(event.pos):
+                        self.mode = "ai_vs_ai"
+                        try:
+                            self.selected_depth = int(user_text)
+                            self.length = int(user_text2)
+                            print(f"Selected Depth: {self.selected_depth}, Length: {self.length}")
+                        except ValueError:
+                            self.selected_depth = 3
+                            self.length = 5
+                            print("Invalid input. Using default depth=3 and length=5")
+                        running = False
+
+                elif event.type == pygame.KEYDOWN:
+                    if input_active:
+                        if event.key == pygame.K_BACKSPACE:
+                            user_text = user_text[:-1]
+                        elif event.key == pygame.K_RETURN:
+                            input_active = False
+                        elif event.unicode.isdigit() and len(user_text) < 2:
+                            user_text += event.unicode
+
+                    elif input_active2:
+                        if event.key == pygame.K_BACKSPACE:
+                            user_text2 = user_text2[:-1]
+                        elif event.key == pygame.K_RETURN:
+                            input_active2 = False
+                        elif event.unicode.isdigit() and len(user_text2) < 2:
+                            user_text2 += event.unicode
+
 
 
     def game_loop(self, mode):
-
+        self.b = Board(self.length)
+        self._service = Service(self.b)
         self._screen.fill((230, 230, 230))
         self.draw_board()
 
@@ -356,12 +400,13 @@ class GameController:
                     return
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
-                    if 320 <= y <= 380:
+                    if 360 <= y <= 420:
                         self.mode = "human_vs_ai"
                         waiting = False
-                    elif 390 <= y <= 450:
+                    elif 440 <= y <= 500:
                         self.mode = "ai_vs_ai"
                         waiting = False
+
 
         self.graphical.game_loop(self.mode)
 
