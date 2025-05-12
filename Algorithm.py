@@ -135,41 +135,17 @@ class BasicAlgo:
 
 
 class AlgorithmAlphaBeta(BasicAlgo):
-    """
-        Mini-max algorithm with Alpha-Beta pruning
-    """
     def __init__(self, depth):
         self.depth = depth
 
     def is_terminal_node(self, board):
-        return Utils.game_over(board.get_board, -1) or Utils.game_over(board.get_board, 1) or len(
-            self.get_valid_locations(board.get_board)) == 0
+        return Utils.game_over(board.get_board, -1) or Utils.game_over(board.get_board, 1) or len(self.get_valid_locations(board.get_board)) == 0
 
     def mini_max(self, board_obj, depth, alpha, beta, maximizing_player):
-        """
-            function alphabeta(node, depth, α, β, maximizingPlayer) 
-                if depth = 0 or node is a terminal node then
-                    return the heuristic value of node
-                if maximizingPlayer then
-                    value := −∞
-                    for each child of node do
-                        value := max(value, alphabeta(child, depth − 1, α, β, FALSE))
-                        α := max(α, value)
-                        if α ≥ β then
-                            break (* β cut-off *)
-                    return value
-                else
-                    value := +∞
-                    for each child of node do
-                        value := min(value, alphabeta(child, depth − 1, α, β, TRUE))
-                        β := min(β, value)
-                        if α ≥ β then
-                            break (* α cut-off *)
-                    return value
-        """
         board = board_obj.get_board
         valid_locations = self.get_valid_locations(board)
         is_terminal = self.is_terminal_node(board_obj)
+
         if depth == 0 or is_terminal:
             if is_terminal:
                 if Utils.game_over(board, -1):
@@ -178,12 +154,12 @@ class AlgorithmAlphaBeta(BasicAlgo):
                     return None, -100000000
             else:  # Depth is zero
                 return None, self.score_board(board, -1)
+
         if maximizing_player:
             value = -math.inf
             point_good = random.choice(valid_locations)
             for point in valid_locations:
-                row = point[0]
-                col = point[1]
+                row, col = point
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
                 new_score = self.mini_max(b_copy, depth - 1, alpha, beta, False)[1]
@@ -198,8 +174,7 @@ class AlgorithmAlphaBeta(BasicAlgo):
             value = math.inf
             point_good = random.choice(valid_locations)
             for point in valid_locations:
-                row = point[0]
-                col = point[1]
+                row, col = point
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
                 new_score = self.mini_max(b_copy, depth - 1, alpha, beta, True)[1]
@@ -217,20 +192,13 @@ class AlgorithmAlphaBeta(BasicAlgo):
 
 
 class AlgorithmMinimax(BasicAlgo):
-    """
-        Mini-max algorithm without Alpha-Beta pruning
-    """
     def __init__(self, depth):
         self.depth = depth
 
     def is_terminal_node(self, board):
-        return Utils.game_over(board.get_board, -1) or Utils.game_over(board.get_board, 1) or len(
-            self.get_valid_locations(board.get_board)) == 0
+        return Utils.game_over(board.get_board, -1) or Utils.game_over(board.get_board, 1) or len(self.get_valid_locations(board.get_board)) == 0
 
     def mini_max(self, board_obj, depth, maximizing_player):
-        """
-            Mini-max algorithm without Alpha-Beta pruning
-        """
         board = board_obj.get_board
         valid_locations = self.get_valid_locations(board)
         is_terminal = self.is_terminal_node(board_obj)
@@ -248,8 +216,7 @@ class AlgorithmMinimax(BasicAlgo):
             value = -math.inf
             point_good = random.choice(valid_locations)
             for point in valid_locations:
-                row = point[0]
-                col = point[1]
+                row, col = point
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
                 new_score = self.mini_max(b_copy, depth - 1, False)[1]
@@ -261,8 +228,7 @@ class AlgorithmMinimax(BasicAlgo):
             value = math.inf
             point_good = random.choice(valid_locations)
             for point in valid_locations:
-                row = point[0]
-                col = point[1]
+                row, col = point
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
                 new_score = self.mini_max(b_copy, depth - 1, True)[1]
@@ -274,3 +240,4 @@ class AlgorithmMinimax(BasicAlgo):
     def next_move(self, board):
         point, value = self.mini_max(board, self.depth, True)
         return point[0], point[1]
+

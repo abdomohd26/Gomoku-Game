@@ -100,7 +100,7 @@ class Graphical:
         pygame.display.update()
 
         if mode == "human_vs_ai":
-            alg = AlgorithmMinimax(1)
+            alg = AlgorithmMinimax(3)
             self._service = Service1(self.b, alg)
             game_over = False
 
@@ -154,8 +154,8 @@ class Graphical:
                         r = False
             pygame.quit()
         else:
-            alg1 = AlgorithmMinimax(3)
-            alg2 = AlgorithmAlphaBeta(3)
+            alg1 = AlgorithmMinimax(1)
+            alg2 = AlgorithmAlphaBeta(5)
             self._service = Service2(self.b, alg1, alg2)
 
             while True:
