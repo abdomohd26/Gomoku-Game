@@ -105,7 +105,8 @@ class Graphical:
             # Draw input 1
             pygame.draw.rect(self._screen, shadow_color, input_box.move(4, 4), border_radius=10)
             pygame.draw.rect(self._screen, input_color, input_box, border_radius=10)
-            text_surface = input_font.render(user_text, True, (0, 0, 0))
+            text_surface = input_font.render(user_text, True, (255, 255, 255))
+
             self._screen.blit(text_surface,
                               (input_box.x + 10, input_box.y + (input_box.height - text_surface.get_height()) // 2))
 
@@ -118,7 +119,7 @@ class Graphical:
             # Draw input 2
             pygame.draw.rect(self._screen, shadow_color, input_box2.move(4, 4), border_radius=10)
             pygame.draw.rect(self._screen, input_color2, input_box2, border_radius=10)
-            text_surface2 = input_font.render(user_text2, True, (0, 0, 0))
+            text_surface2 = input_font.render(user_text2, True, (255, 255, 255))
             self._screen.blit(text_surface2,
                               (input_box2.x + 10, input_box2.y + (input_box2.height - text_surface2.get_height()) // 2))
 
