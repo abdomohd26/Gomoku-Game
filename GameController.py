@@ -45,7 +45,6 @@ class Graphical:
 
         pygame.display.update()
 
-
     def main_menu(self):
         background = pygame.image.load("background.png")
         background = pygame.transform.scale(background, (800, 800))
@@ -55,20 +54,35 @@ class Graphical:
         small_font = pygame.font.Font('Jersey10-Regular.ttf', 45)
         input_font = pygame.font.Font('Jersey10-Regular.ttf', 40)
 
-        button_width = 400
+        button_width = 450
         button_height = 60
+
+        input_box_width = 60
+        input_box_height = 60
+        label_width = 140
+        horizontal_spacing = 10
+        vertical_position = 275
+        x_start = 175
+        block_spacing = 30
+
         button1 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 360, button_width, button_height)
         button2 = pygame.Rect(self._screen.get_width() // 2 - button_width // 2, 440, button_width, button_height)
 
-        input_box = pygame.Rect(self._screen.get_width() // 2 + 40, 250, 45, 45)
-        input_box2 = pygame.Rect(self._screen.get_width() // 2 + 40, 310, 45, 45)
-        
-        input_color_inactive = (200, 200, 200)
-        input_color_active = (255, 255, 255)
-        
+        # Define static positions for input boxes
+        label_box1 = pygame.Rect(x_start, vertical_position, label_width, input_box_height)
+        input_box = pygame.Rect(label_box1.right + horizontal_spacing, vertical_position, input_box_width,
+                                input_box_height)
+
+        label_box2 = pygame.Rect(input_box.right + block_spacing, vertical_position, label_width, input_box_height)
+        input_box2 = pygame.Rect(label_box2.right + horizontal_spacing, vertical_position, input_box_width,
+                                 input_box_height)
+
+        input_color_inactive = (30, 90, 150)
+        input_color_active = (137, 180, 222)
+
         input_active = False
         input_active2 = False
-        
+
         input_color = input_color_inactive
         input_color2 = input_color_inactive
 
@@ -82,21 +96,31 @@ class Graphical:
         while running:
             self._screen.blit(background, (0, 0))
 
-            # Draw input labels
-            input_label = input_font.render("AI Depth:", True, (0, 0, 0))
-            self._screen.blit(input_label, (input_box.x - 150, input_box.y + 7))
+            # Draw label 1
+            pygame.draw.rect(self._screen, shadow_color, label_box1.move(4, 4), border_radius=12)
+            pygame.draw.rect(self._screen, button_color, label_box1, border_radius=12)
+            label_text1 = small_font.render("AI Depth", True, (255, 255, 255))
+            self._screen.blit(label_text1, label_text1.get_rect(center=label_box1.center))
 
-            input_label2 = input_font.render("Length:", True, (0, 0, 0))
-            self._screen.blit(input_label2, (input_box2.x - 150, input_box2.y + 7))
-
-            # Draw input boxes
+            # Draw input 1
+            pygame.draw.rect(self._screen, shadow_color, input_box.move(4, 4), border_radius=10)
             pygame.draw.rect(self._screen, input_color, input_box, border_radius=10)
             text_surface = input_font.render(user_text, True, (0, 0, 0))
-            self._screen.blit(text_surface, (input_box.x + 10, input_box.y + 10))
+            self._screen.blit(text_surface,
+                              (input_box.x + 10, input_box.y + (input_box.height - text_surface.get_height()) // 2))
 
+            # Draw label 2
+            pygame.draw.rect(self._screen, shadow_color, label_box2.move(4, 4), border_radius=12)
+            pygame.draw.rect(self._screen, button_color, label_box2, border_radius=12)
+            label_text2 = small_font.render("Length", True, (255, 255, 255))
+            self._screen.blit(label_text2, label_text2.get_rect(center=label_box2.center))
+
+            # Draw input 2
+            pygame.draw.rect(self._screen, shadow_color, input_box2.move(4, 4), border_radius=10)
             pygame.draw.rect(self._screen, input_color2, input_box2, border_radius=10)
             text_surface2 = input_font.render(user_text2, True, (0, 0, 0))
-            self._screen.blit(text_surface2, (input_box2.x + 10, input_box2.y + 10))
+            self._screen.blit(text_surface2,
+                              (input_box2.x + 10, input_box2.y + (input_box2.height - text_surface2.get_height()) // 2))
 
             # Draw buttons
             pygame.draw.rect(self._screen, shadow_color, button1.move(4, 4), border_radius=12)
@@ -118,7 +142,7 @@ class Graphical:
                     return
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    # Activate input boxes
+                    # Activate input boxes correctly
                     if input_box.collidepoint(event.pos):
                         input_active = True
                         input_active2 = False
@@ -173,216 +197,173 @@ class Graphical:
                         elif event.unicode.isdigit() and len(user_text2) < 2:
                             user_text2 += event.unicode
 
-
-
     def game_loop(self, mode):
-        self.b = Board(self.length)
-        self._service = Service(self.b)
-        self._screen.fill((230, 230, 230))
-        self.draw_board()
+        while True:  # Outer loop to allow replay
+            self.b = Board(self.length)
 
-        pygame.display.update()
-
-        if mode == "human_vs_ai":
-            alg = AlgorithmMinimax(self.selected_depth)
-            self._service = Service1(self.b, alg)
-            game_over = False
-            draw = False
-            while not game_over:
-                self.draw_board()
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        return
-                    elif event.type == pygame.MOUSEBUTTONDOWN:
-                        if self._service.get_turn() == 1:
-                            try:
-                                cell_size = self._screen.get_width() // self.length
-                                x = event.pos[0] // cell_size
-                                y = event.pos[1] // cell_size
-
-                                self._service.player_move(x, y)
-                                click = pygame.mixer.Sound('click.wav')
-                                click.play()
-                                if Utils.game_over(self._service.get_board(), 1):
-                                    game_over = True
-                                elif not any(0 in row for row in self._service.get_board()):
-                                    draw = True
-                                    game_over = True
-                            except Exceptions.InvalidMove:
-                                wrong = pygame.mixer.Sound('wrong.wav')
-                                wrong.play()
-
-                                cell_size = self._screen.get_width() // self.length
-                                x = event.pos[0] // cell_size
-                                y = event.pos[1] // cell_size
-
-                                red_overlay = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
-
-                                pygame.draw.rect(
-                                    red_overlay,
-                                    (255, 0, 0, 128),  # RGBA, 128 = 50% opacity
-                                    red_overlay.get_rect(),
-                                    border_radius=7
-                                )
-
-                                # Blit overlay and update
-                                self._screen.blit(red_overlay, (x * cell_size, y * cell_size))
-                                pygame.display.update()
-                                time.sleep(0.5)
-
-                                self.draw_board()
-                                continue
-                self.draw_board()
-                if not game_over and self._service.get_turn() == -1:
-                    self._service.computer_move()
-                    click = pygame.mixer.Sound('click.wav')
-                    click.play()
-                    if Utils.game_over(self._service.get_board(), -1):
-                        game_over = True
-                    elif not any(0 in row for row in self._service.get_board()):
-                        draw = True
-                        game_over = True
-
-            self.draw_board()
-
-
-            font = pygame.font.Font('Jersey10-Regular.ttf', 60)
-            if draw:
-                grey_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
-                grey_overlay.fill((100, 100, 100, 128))
-                self._screen.blit(grey_overlay, (0, 0))
-                message = 'Draw!'
-                bg_color = (54, 116, 181)
-                draw_sound = pygame.mixer.Sound('draw.wav')
-                draw_sound.play()
-
-            elif self._service.get_turn() == -1:
-                green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
-                green_overlay.fill((0, 255, 0, 128))
-                self._screen.blit(green_overlay, (0, 0))
-                message = 'You Won!'
-                bg_color = (54, 116, 181)
-                win_sound = pygame.mixer.Sound('win.wav')
-                win_sound.play()
-
-            elif self._service.get_turn() == 1:
-                red_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
-                red_overlay.fill((255, 0, 0, 128))
-                self._screen.blit(red_overlay, (0, 0))
-                message = 'You lose!'
-                bg_color = (54, 116, 181)
-                lose_sound = pygame.mixer.Sound('lose.wav')
-                lose_sound.play()
-
+            if mode == "human_vs_ai":
+                alg = AlgorithmMinimax(self.selected_depth)
+                self._service = Service1(self.b, alg)
             else:
-                return
+                alg1 = AlgorithmMinimax(self.selected_depth)
+                alg2 = AlgorithmAlphaBeta(self.selected_depth)
+                self._service = Service2(self.b, alg1, alg2)
 
-            text = font.render(message, True, (255, 255, 255))
-            text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2 - 70))
-            bg_rect = text_rect.inflate(40, 20)
-
-            pygame.draw.rect(self._screen, bg_color, bg_rect, border_radius=10)
-            self._screen.blit(text, text_rect)
-            pygame.display.update()
-#Play Again
-
-            font_small = pygame.font.Font('Jersey10-Regular.ttf', 40)
-            button_width = 200
-            button_height = 50
-            button_spacing = 40
-
-            total_width = 2 * button_width + button_spacing
-            start_x = (self._screen.get_width() - total_width) // 2
-            y_pos = self._screen.get_height() // 2 + 40
-
-            button_play = pygame.Rect(start_x, y_pos, button_width, button_height)
-            button_quit = pygame.Rect(start_x + button_width + button_spacing, y_pos, button_width, button_height)
-
-            pygame.draw.rect(self._screen, (54, 116, 181), button_play, border_radius=10)
-            pygame.draw.rect(self._screen, (54, 116, 181), button_quit, border_radius=10)
-
-            txt_play = font_small.render("Play Again", True, (255, 255, 255))
-            txt_quit = font_small.render("Quit", True, (255, 255, 255))
-
-            self._screen.blit(txt_play, txt_play.get_rect(center=button_play.center))
-            self._screen.blit(txt_quit, txt_quit.get_rect(center=button_quit.center))
+            self._screen.fill((230, 230, 230))
+            self.draw_board()
             pygame.display.update()
 
-            waiting = True
-            while waiting:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        return
-                    elif event.type == pygame.MOUSEBUTTONDOWN:
-                        x, y = event.pos
-                        if button_play.collidepoint(x, y):
-                            self.__init__()  # Reset the game
-                            self.game_loop("human_vs_ai")
-                            return
-                        elif button_quit.collidepoint(x, y):
+            if mode == "human_vs_ai":
+                game_over = False
+                draw = False
+
+                while not game_over:
+                    self.draw_board()
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
                             pygame.quit()
-                            return
+                            exit()
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                            if self._service.get_turn() == 1:
+                                try:
+                                    cell_size = self._screen.get_width() // self.length
+                                    x = event.pos[0] // cell_size
+                                    y = event.pos[1] // cell_size
 
+                                    self._service.player_move(x, y)
+                                    pygame.mixer.Sound('click.wav').play()
 
-        else:
-            alg1 = AlgorithmMinimax(self.selected_depth)
-            alg2 = AlgorithmAlphaBeta(self.selected_depth)
-            self._service = Service2(self.b, alg1, alg2)
+                                    if Utils.game_over(self._service.get_board(), 1):
+                                        game_over = True
+                                    elif not any(0 in row for row in self._service.get_board()):
+                                        draw = True
+                                        game_over = True
+                                except Exceptions.InvalidMove:
+                                    pygame.mixer.Sound('wrong.wav').play()
 
-            while True:
+                                    red_overlay = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
+                                    pygame.draw.rect(red_overlay, (255, 0, 0, 128), red_overlay.get_rect(),
+                                                     border_radius=7)
+                                    self._screen.blit(red_overlay, (x * cell_size, y * cell_size))
+                                    pygame.display.update()
+                                    time.sleep(0.5)
+                                    self.draw_board()
+                                    continue
+
+                    if not game_over and self._service.get_turn() == -1:
+                        self._service.computer_move()
+                        pygame.mixer.Sound('click.wav').play()
+                        if Utils.game_over(self._service.get_board(), -1):
+                            game_over = True
+                        elif not any(0 in row for row in self._service.get_board()):
+                            draw = True
+                            game_over = True
+
+                # === Game Over Message ===
                 self.draw_board()
-                self._service.computer_move1()
-                click = pygame.mixer.Sound('click.wav')
-                click.play()
-                time.sleep(0.5)
+                font = pygame.font.Font('Jersey10-Regular.ttf', 60)
+
+                if draw:
+                    message = 'Draw!'
+                    pygame.mixer.Sound('draw.wav').play()
+                    overlay_color = (100, 100, 100, 128)
+                elif self._service.get_turn() == -1:
+                    message = 'You Won!'
+                    pygame.mixer.Sound('win.wav').play()
+                    overlay_color = (0, 255, 0, 128)
+                else:
+                    message = 'You Lose!'
+                    pygame.mixer.Sound('lose.wav').play()
+                    overlay_color = (255, 0, 0, 128)
+
+                overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
+                overlay.fill(overlay_color)
+                self._screen.blit(overlay, (0, 0))
+
+                text = font.render(message, True, (255, 255, 255))
+                text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2 - 70))
+                bg_rect = text_rect.inflate(40, 20)
+                pygame.draw.rect(self._screen, (54, 116, 181), bg_rect, border_radius=10)
+                self._screen.blit(text, text_rect)
+
+                # === Play Again Buttons ===
+                font_small = pygame.font.Font('Jersey10-Regular.ttf', 40)
+                button_width, button_height = 200, 50
+                button_spacing = 40
+                total_width = 2 * button_width + button_spacing
+                start_x = (self._screen.get_width() - total_width) // 2
+                y_pos = self._screen.get_height() // 2 + 40
+
+                button_play = pygame.Rect(start_x, y_pos, button_width, button_height)
+                button_quit = pygame.Rect(start_x + button_width + button_spacing, y_pos, button_width, button_height)
+
+                pygame.draw.rect(self._screen, (54, 116, 181), button_play, border_radius=10)
+                pygame.draw.rect(self._screen, (54, 116, 181), button_quit, border_radius=10)
+
+                txt_play = font_small.render("Play Again", True, (255, 255, 255))
+                txt_quit = font_small.render("Quit", True, (255, 255, 255))
+                self._screen.blit(txt_play, txt_play.get_rect(center=button_play.center))
+                self._screen.blit(txt_quit, txt_quit.get_rect(center=button_quit.center))
                 pygame.display.update()
 
-                if Utils.game_over(self._service.get_board(), -1):
+                while True:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            exit()
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                            if button_play.collidepoint(event.pos):
+                                break  # restart outer loop
+                            elif button_quit.collidepoint(event.pos):
+                                pygame.quit()
+                                exit()
+                    else:
+                        continue
                     break
+
+            else:  # AI vs AI Mode
+                while True:
+                    self.draw_board()
+                    self._service.computer_move1()
+                    pygame.mixer.Sound('click.wav').play()
+                    time.sleep(0.5)
+                    pygame.display.update()
+                    if Utils.game_over(self._service.get_board(), -1):
+                        break
+
+                    self.draw_board()
+                    self._service.computer_move2()
+                    pygame.mixer.Sound('click.wav').play()
+                    time.sleep(0.5)
+                    pygame.display.update()
+                    if Utils.game_over(self._service.get_board(), -1):
+                        break
 
                 self.draw_board()
-                self._service.computer_move2()
-                click = pygame.mixer.Sound('click.wav')
-                click.play()
-                time.sleep(0.5)
-                pygame.display.update()
+                font = pygame.font.Font('Jersey10-Regular.ttf', 50)
 
-                if Utils.game_over(self._service.get_board(), -1):
-                    break
+                if self._service.get_turn() == -1:
+                    message = 'Minimax Algorithm Won!'
+                else:
+                    message = 'Alpha Beta Algorithm Won!'
 
-            self.draw_board()
-            font = pygame.font.Font('Jersey10-Regular.ttf', 50)
-
-            if self._service.get_turn() == -1:
-                message = 'Minimax Algorithm Won!'
+                pygame.mixer.Sound('win1.wav').play()
                 green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
                 green_overlay.fill((0, 255, 0, 128))
                 self._screen.blit(green_overlay, (0, 0))
-                win_sound1 = pygame.mixer.Sound('win1.wav')
-                win_sound1.play()
-            else:
-                message = 'Alpha Beta Algorithm Won!'
-                green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
-                green_overlay.fill((0, 255, 0, 128))
-                self._screen.blit(green_overlay, (0, 0))
-                win_sound1 = pygame.mixer.Sound('win1.wav')
-                win_sound1.play()
 
-            text = font.render(message, True, (255, 255, 255))
-            text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2))
-            bg_rect = text_rect.inflate(40, 20)
+                text = font.render(message, True, (255, 255, 255))
+                text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2))
+                bg_rect = text_rect.inflate(40, 20)
+                pygame.draw.rect(self._screen, (54, 116, 181), bg_rect, border_radius=10)
+                self._screen.blit(text, text_rect)
+                pygame.display.update()
 
-            pygame.draw.rect(self._screen, (54, 116, 181), bg_rect, border_radius=10)
-            self._screen.blit(text, text_rect)
-            pygame.display.update()
-
-            r = True
-            while r:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        r = False
-            pygame.quit()
+                while True:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            exit()
 
 
 class GameController:
@@ -412,5 +393,7 @@ class GameController:
 
 
 if __name__ == "__main__":
-    game = GameController()
-    game.run()
+    game = Graphical()
+    game.main_menu()
+    game.game_loop(game.mode)
+
