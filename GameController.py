@@ -203,11 +203,11 @@ class Graphical:
             self.b = Board(self.length)
 
             if mode == "human_vs_ai":
-                alg = AlgorithmMinimax(self.selected_depth)
+                alg = AlgorithmMinimax(self.selected_depth,-1)
                 self._service = Service1(self.b, alg)
             else:
-                alg1 = AlgorithmMinimax(self.selected_depth)
-                alg2 = AlgorithmAlphaBeta(self.selected_depth)
+                alg1 = AlgorithmMinimax(self.selected_depth,1)
+                alg2 = AlgorithmAlphaBeta(self.selected_depth,-1)
                 self._service = Service2(self.b, alg1, alg2)
 
             self._screen.fill((230, 230, 230))
