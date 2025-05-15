@@ -332,7 +332,9 @@ class Graphical:
                     pygame.display.update()
                     if Utils.game_over(self._service.get_board(), -1):
                         break
-                    
+                    elif not any(0 in row for row in self._service.get_board()):
+                        draw = True
+                        break
 
                     self.draw_board()
                     self._service.computer_move2()
