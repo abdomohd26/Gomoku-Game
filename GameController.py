@@ -356,7 +356,7 @@ class Graphical:
                 else:
                     message = 'Alpha Beta Algorithm Won!'
 
-                pygame.mixer.Sound('win1.wav').play()
+                pygame.mixer.Sound('win.wav').play()
                 green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
                 green_overlay.fill((0, 255, 0, 128))
                 self._screen.blit(green_overlay, (0, 0))
