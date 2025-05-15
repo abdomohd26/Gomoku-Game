@@ -349,19 +349,25 @@ class Graphical:
 
                 self.draw_board()
                 font = pygame.font.Font('Jersey10-Regular.ttf', 50)
+                isWin = False
                 if draw:
                     message = 'Draw!'
                     pygame.mixer.Sound('draw.wav').play()
-                    overlay_color = (100, 100, 100, 128)
+                    grey_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
+                    grey_overlay.fill((100, 100, 100, 128))
+                    self._screen.blit(grey_overlay, (0, 0))
                 elif self._service.get_turn() == -1:
                     message = 'Minimax Algorithm Won!'
+                    isWin = True
                 else:
                     message = 'Alpha Beta Algorithm Won!'
+                    isWin = True
 
-                pygame.mixer.Sound('win.wav').play()
-                green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
-                green_overlay.fill((0, 255, 0, 128))
-                self._screen.blit(green_overlay, (0, 0))
+                if isWin:
+                    pygame.mixer.Sound('win.wav').play()
+                    green_overlay = pygame.Surface((800, 800), pygame.SRCALPHA)
+                    green_overlay.fill((0, 255, 0, 128))
+                    self._screen.blit(green_overlay, (0, 0))
 
                 text = font.render(message, True, (255, 255, 255))
                 text_rect = text.get_rect(center=(self._screen.get_width() // 2, self._screen.get_height() // 2))
@@ -370,11 +376,40 @@ class Graphical:
                 self._screen.blit(text, text_rect)
                 pygame.display.update()
 
+                # === Play Again Buttons ===
+                font_small = pygame.font.Font('Jersey10-Regular.ttf', 40)
+                button_width, button_height = 200, 50
+                button_spacing = 40
+                total_width = 2 * button_width + button_spacing
+                start_x = (self._screen.get_width() - total_width) // 2
+                y_pos = self._screen.get_height() // 2 + 40
+
+                button_play = pygame.Rect(start_x, y_pos, button_width, button_height)
+                button_quit = pygame.Rect(start_x + button_width + button_spacing, y_pos, button_width, button_height)
+
+                pygame.draw.rect(self._screen, (54, 116, 181), button_play, border_radius=10)
+                pygame.draw.rect(self._screen, (54, 116, 181), button_quit, border_radius=10)
+
+                txt_play = font_small.render("Play Again", True, (255, 255, 255))
+                txt_quit = font_small.render("Quit", True, (255, 255, 255))
+                self._screen.blit(txt_play, txt_play.get_rect(center=button_play.center))
+                self._screen.blit(txt_quit, txt_quit.get_rect(center=button_quit.center))
+                pygame.display.update()
+
                 while True:
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()
                             exit()
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                            if button_play.collidepoint(event.pos):
+                                break  # restart outer loop
+                            elif button_quit.collidepoint(event.pos):
+                                pygame.quit()
+                                exit()
+                    else:
+                        continue
+                    break
 
 
 class GameController:
