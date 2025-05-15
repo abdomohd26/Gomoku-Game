@@ -323,6 +323,7 @@ class Graphical:
                     break
 
             else:  # AI vs AI Mode
+                draw = False
                 while True:
                     self.draw_board()
                     self._service.computer_move1()
@@ -331,6 +332,7 @@ class Graphical:
                     pygame.display.update()
                     if Utils.game_over(self._service.get_board(), -1):
                         break
+                    
 
                     self.draw_board()
                     self._service.computer_move2()
@@ -339,11 +341,17 @@ class Graphical:
                     pygame.display.update()
                     if Utils.game_over(self._service.get_board(), -1):
                         break
+                    elif not any(0 in row for row in self._service.get_board()):
+                        draw = True
+                        break
 
                 self.draw_board()
                 font = pygame.font.Font('Jersey10-Regular.ttf', 50)
-
-                if self._service.get_turn() == -1:
+                if draw:
+                    message = 'Draw!'
+                    pygame.mixer.Sound('draw.wav').play()
+                    overlay_color = (100, 100, 100, 128)
+                elif self._service.get_turn() == -1:
                     message = 'Minimax Algorithm Won!'
                 else:
                     message = 'Alpha Beta Algorithm Won!'
