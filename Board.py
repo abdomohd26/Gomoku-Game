@@ -5,8 +5,8 @@ from copy import deepcopy
 class Board:
     """
     0   -> empty square
-    1   -> human move
-    -1  -> computer move
+    1   -> player 1 move
+    -1  -> player 2 move
 
     board   -> a matrix of dimension length
     """

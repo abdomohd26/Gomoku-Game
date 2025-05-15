@@ -138,106 +138,127 @@ class AlgorithmAlphaBeta(BasicAlgo):
     def __init__(self, depth):
         self.depth = depth
 
-    def is_terminal_node(self, board):
-        return Utils.game_over(board.get_board, -1) or Utils.game_over(board.get_board, 1) or len(self.get_valid_locations(board.get_board)) == 0
+    def is_terminal_node(self, board_obj):
+        board = board_obj.get_board
+        return (
+            Utils.game_over(board, 1) or
+            Utils.game_over(board, -1) or
+            len(self.get_valid_locations(board)) == 0
+        )
 
-    def mini_max(self, board_obj, depth, alpha, beta, maximizing_player):
+    def mini_max(self, board_obj, depth, alpha, beta, maximizing_player, piece):
         board = board_obj.get_board
         valid_locations = self.get_valid_locations(board)
         is_terminal = self.is_terminal_node(board_obj)
 
         if depth == 0 or is_terminal:
             if is_terminal:
-                if Utils.game_over(board, -1):
-                    return None, 100000000
-                elif Utils.game_over(board, 1):
-                    return None, -100000000
-            else:  # Depth is zero
-                return None, self.score_board(board, -1)
+                if Utils.game_over(board, piece):
+                    return None, 1_000_000_000
+                elif Utils.game_over(board, -piece):
+                    return None, -1_000_000_000
+                else:
+                    return None, 0  # Draw
+            else:
+                return None, self.score_board(board, piece)
 
         if maximizing_player:
             value = -math.inf
-            point_good = random.choice(valid_locations)
-            for point in valid_locations:
-                row, col = point
+            best_move = random.choice(valid_locations)
+            for move in valid_locations:
+                row, col = move
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
-                new_score = self.mini_max(b_copy, depth - 1, alpha, beta, False)[1]
+                new_score = self.mini_max(
+                    b_copy, depth - 1, alpha, beta, False, -piece
+                )[1]
                 if new_score > value:
                     value = new_score
-                    point_good = point
+                    best_move = move
                 alpha = max(alpha, value)
                 if alpha >= beta:
                     break
-            return point_good, value
-        else:  # Minimizing player
+            return best_move, value
+        else:
             value = math.inf
-            point_good = random.choice(valid_locations)
-            for point in valid_locations:
-                row, col = point
+            best_move = random.choice(valid_locations)
+            for move in valid_locations:
+                row, col = move
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
-                new_score = self.mini_max(b_copy, depth - 1, alpha, beta, True)[1]
+                new_score = self.mini_max(
+                    b_copy, depth - 1, alpha, beta, True, -piece
+                )[1]
                 if new_score < value:
                     value = new_score
-                    point_good = point
+                    best_move = move
                 beta = min(beta, value)
                 if alpha >= beta:
                     break
-            return point_good, value
+            return best_move, value
 
-    def next_move(self, board):
-        point, value = self.mini_max(board, self.depth, -math.inf, math.inf, True)
-        return point[0], point[1]
-
+    def next_move(self, board_obj):
+        piece = board_obj.get_turn  # 1 or -1
+        move, _ = self.mini_max(
+            board_obj, self.depth, -math.inf, math.inf, True, piece
+        )
+        return move
 
 class AlgorithmMinimax(BasicAlgo):
     def __init__(self, depth):
         self.depth = depth
 
-    def is_terminal_node(self, board):
-        return Utils.game_over(board.get_board, -1) or Utils.game_over(board.get_board, 1) or len(self.get_valid_locations(board.get_board)) == 0
+    def is_terminal_node(self, board_obj):
+        board = board_obj.get_board
+        return (
+            Utils.game_over(board, 1) or
+            Utils.game_over(board, -1) or
+            len(self.get_valid_locations(board)) == 0
+        )
 
-    def mini_max(self, board_obj, depth, maximizing_player):
+    def mini_max(self, board_obj, depth, maximizing_player, piece):
         board = board_obj.get_board
         valid_locations = self.get_valid_locations(board)
         is_terminal = self.is_terminal_node(board_obj)
 
         if depth == 0 or is_terminal:
             if is_terminal:
-                if Utils.game_over(board, -1):
-                    return None, 100000000
-                elif Utils.game_over(board, 1):
-                    return None, -100000000
-            else:  # Depth is zero
-                return None, self.score_board(board, -1)
+                if Utils.game_over(board, piece):
+                    return None, 1_000_000_000
+                elif Utils.game_over(board, -piece):
+                    return None, -1_000_000_000
+                else:
+                    return None, 0
+            else:
+                return None, self.score_board(board, piece)
 
         if maximizing_player:
             value = -math.inf
-            point_good = random.choice(valid_locations)
-            for point in valid_locations:
-                row, col = point
+            best_move = random.choice(valid_locations)
+            for move in valid_locations:
+                row, col = move
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
-                new_score = self.mini_max(b_copy, depth - 1, False)[1]
+                new_score = self.mini_max(b_copy, depth - 1, False, -piece)[1]
                 if new_score > value:
                     value = new_score
-                    point_good = point
-            return point_good, value
-        else:  # Minimizing player
+                    best_move = move
+            return best_move, value
+        else:
             value = math.inf
-            point_good = random.choice(valid_locations)
-            for point in valid_locations:
-                row, col = point
+            best_move = random.choice(valid_locations)
+            for move in valid_locations:
+                row, col = move
                 b_copy = deepcopy(board_obj)
                 b_copy.move(row, col)
-                new_score = self.mini_max(b_copy, depth - 1, True)[1]
+                new_score = self.mini_max(b_copy, depth - 1, True, -piece)[1]
                 if new_score < value:
                     value = new_score
-                    point_good = point
-            return point_good, value
+                    best_move = move
+            return best_move, value
 
-    def next_move(self, board):
-        point, value = self.mini_max(board, self.depth, True)
-        return point[0], point[1]
+    def next_move(self, board_obj):
+        piece = board_obj.get_turn  # 1 or -1
+        move, _ = self.mini_max(board_obj, self.depth, True, piece)
+        return move
 
