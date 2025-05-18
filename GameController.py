@@ -7,7 +7,7 @@ from Board import Board
 from Algorithm import AlgorithmAlphaBeta, AlgorithmMinimax
 
 
-class Graphical:
+class GameController:
     def __init__(self):
         pygame.init()
         self.length = 5
@@ -19,13 +19,13 @@ class Graphical:
         board = self._service.get_board()
         board_size = len(board)
         cell_size = 800 // board_size
-
+        #draw cells
         for c in range(board_size):
             for r in range(board_size):
                 rect = pygame.Rect(c * cell_size, r * cell_size, cell_size, cell_size)
                 pygame.draw.rect(self._screen, (146, 184, 224), rect, border_radius=7)
                 pygame.draw.rect(self._screen, (237, 237, 237), rect, width=1, border_radius=7)
-
+        #draw selected cells
         for c in range(board_size):
             for r in range(board_size):
                 center = (c * cell_size + cell_size // 2, r * cell_size + cell_size // 2)
@@ -199,7 +199,7 @@ class Graphical:
                             user_text2 += event.unicode
 
     def game_loop(self, mode):
-        while True:  # Outer loop to allow replay
+        while True:
             self.b = Board(self.length)
 
             if mode == "human_vs_ai":
@@ -236,10 +236,10 @@ class Graphical:
 
                                     if Utils.game_over(self._service.get_board(), 1):
                                         game_over = True
-                                    elif not any(0 in row for row in self._service.get_board()):
+                                    elif not any(0 in row for row in self._service.get_board()): # draw case if the board is full and the game isn't over
                                         draw = True
                                         game_over = True
-                                except Exceptions.InvalidMove:
+                                except Exceptions.InvalidMove: # if the choosed cell is previously taken
                                     pygame.mixer.Sound('wrong.wav').play()
 
                                     red_overlay = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
@@ -268,7 +268,7 @@ class Graphical:
                     message = 'Draw!'
                     pygame.mixer.Sound('draw.wav').play()
                     overlay_color = (100, 100, 100, 128)
-                elif self._service.get_turn() == -1:
+                elif self._service.get_turn() == -1: # the last one who played is 1 and he won then the turn is switched to -1 
                     message = 'You Won!'
                     pygame.mixer.Sound('win.wav').play()
                     overlay_color = (0, 255, 0, 128)
@@ -330,7 +330,7 @@ class Graphical:
                     pygame.mixer.Sound('click.wav').play()
                     time.sleep(0.5)
                     pygame.display.update()
-                    if Utils.game_over(self._service.get_board(), -1):
+                    if Utils.game_over(self._service.get_board(), 1):
                         break
                     elif not any(0 in row for row in self._service.get_board()):
                         draw = True
@@ -412,34 +412,9 @@ class Graphical:
                     break
 
 
-class GameController:
-    def __init__(self):
-        self.mode = None
-        self.graphical = Graphical()
-
-    def run(self):
-        self.graphical.main_menu()
-        waiting = True
-        while waiting:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    return
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    x, y = event.pos
-                    if 360 <= y <= 420:
-                        self.mode = "human_vs_ai"
-                        waiting = False
-                    elif 440 <= y <= 500:
-                        self.mode = "ai_vs_ai"
-                        waiting = False
-
-
-        self.graphical.game_loop(self.mode)
-
 
 if __name__ == "__main__":
-    game = Graphical()
+    game = GameController()
     game.main_menu()
     game.game_loop(game.mode)
 

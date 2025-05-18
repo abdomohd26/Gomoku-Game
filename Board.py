@@ -25,13 +25,6 @@ class Board:
         return self._turn
 
     def move(self, x, y):
-        """
-        Raises InvalidMove exception if:
-                - move outside the board
-                - square already occupied
-        x, y - coordinates
-        """
-
         if not (0 <= x < self.length and 0 <= y < self.length):
             raise InvalidMove("Move outside the board")
 
